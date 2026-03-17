@@ -28,35 +28,8 @@ export default function Dashboard() {
     }
   };
 
-  // Not subscribed — show paywall
-  if (!subscription.subscribed) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-8">
-        <h1 className="font-mono text-lg tracking-tighter font-bold text-foreground mb-2">CARDVAULT</h1>
-        <p className="text-muted-foreground text-sm mb-8 text-center max-w-md">
-          Subscribe to CardVault Pro to access your vault. $9.99/month — full access to all features.
-        </p>
-        <button
-          onClick={handleCheckout}
-          className="flex items-center gap-2 bg-primary text-primary-foreground px-8 py-3 text-sm font-mono uppercase tracking-widest hover:opacity-90 snap-transition"
-        >
-          <CreditCard className="w-4 h-4" /> Subscribe — $9.99/mo
-        </button>
-        <button
-          onClick={checkSubscription}
-          className="mt-4 text-xs text-muted-foreground hover:text-foreground snap-transition"
-        >
-          Already subscribed? Refresh status
-        </button>
-        <button
-          onClick={signOut}
-          className="mt-6 text-xs text-muted-foreground hover:text-destructive snap-transition"
-        >
-          Sign out
-        </button>
-      </div>
-    );
-  }
+  // TODO: Re-enable subscription paywall before launch
+  // if (!subscription.subscribed) { ... }
 
   // Subscribed — show app
   return (
