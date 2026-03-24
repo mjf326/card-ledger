@@ -14,7 +14,119 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      customers: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          buyer_signature: string | null
+          card_image: string | null
+          card_name: string
+          card_number: string | null
+          card_set: string | null
+          card_type: string | null
+          condition: string | null
+          created_at: string
+          customer_id: string | null
+          customer_name: string
+          edition: string | null
+          id: string
+          rarity: string | null
+          receipt_image: string | null
+          seller_signature: string | null
+          status: string
+          transaction_code: string
+          transaction_date: string
+          tx_hash: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          buyer_signature?: string | null
+          card_image?: string | null
+          card_name: string
+          card_number?: string | null
+          card_set?: string | null
+          card_type?: string | null
+          condition?: string | null
+          created_at?: string
+          customer_id?: string | null
+          customer_name: string
+          edition?: string | null
+          id?: string
+          rarity?: string | null
+          receipt_image?: string | null
+          seller_signature?: string | null
+          status?: string
+          transaction_code: string
+          transaction_date?: string
+          tx_hash?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          buyer_signature?: string | null
+          card_image?: string | null
+          card_name?: string
+          card_number?: string | null
+          card_set?: string | null
+          card_type?: string | null
+          condition?: string | null
+          created_at?: string
+          customer_id?: string | null
+          customer_name?: string
+          edition?: string | null
+          id?: string
+          rarity?: string | null
+          receipt_image?: string | null
+          seller_signature?: string | null
+          status?: string
+          transaction_code?: string
+          transaction_date?: string
+          tx_hash?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

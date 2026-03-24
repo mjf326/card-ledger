@@ -1,8 +1,10 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, CalendarIcon } from "lucide-react";
-import { useTransactions } from "@/context/TransactionContext";
+import { ArrowLeft } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
 import CardScanner from "@/components/CardScanner";
+import CustomerSelector, { Customer } from "@/components/CustomerSelector";
 import SignaturePad, { SignaturePadRef } from "@/components/SignaturePad";
 import { toast } from "sonner";
 
@@ -11,8 +13,15 @@ interface NewTransactionProps {
   onBack: () => void;
 }
 
+function generateHash(): string {
+  const chars = "0123456789abcdef";
+  let hash = "0x";
+  for (let i = 0; i < 64; i++) hash += chars[Math.floor(Math.random() * 16)];
+  return hash;
+}
+
 export default function NewTransaction({ onComplete, onBack }: NewTransactionProps) {
-  const { addTransaction } = useTransactions();
+  const { user } = useAuth();
   const buyerSigRef = useRef<SignaturePadRef>(null);
   const sellerSigRef = useRef<SignaturePadRef>(null);
 
@@ -22,48 +31,69 @@ export default function NewTransaction({ onComplete, onBack }: NewTransactionPro
   const [cardNumber, setCardNumber] = useState("");
   const [rarity, setRarity] = useState("");
   const [cardType, setCardType] = useState("");
-  const [condition, setCondition] = useState("");
+  const [conditionVal, setConditionVal] = useState("");
   const [edition, setEdition] = useState("");
-  const [buyerName, setBuyerName] = useState("");
-  const [sellerName, setSellerName] = useState("");
+  const [txType, setTxType] = useState<"bought" | "sold">("bought");
+  const [customer, setCustomer] = useState<Customer | null>(null);
   const [amount, setAmount] = useState("");
   const [transactionDate, setTransactionDate] = useState(new Date().toISOString().split("T")[0]);
   const [buyerSig, setBuyerSig] = useState<string | null>(null);
   const [sellerSig, setSellerSig] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  const handleCapture = (imageData: string, info: { name: string; set: string; number: string; rarity?: string; cardType?: string; condition?: string; edition?: string }) => {
+  const handleCapture = (imageData: string, info: any) => {
     setCardImage(imageData);
     if (info.name) setCardName(info.name);
     if (info.set) setCardSet(info.set);
     if (info.number) setCardNumber(info.number);
     if (info.rarity) setRarity(info.rarity);
     if (info.cardType) setCardType(info.cardType);
-    if (info.condition) setCondition(info.condition);
+    if (info.condition) setConditionVal(info.condition);
     if (info.edition) setEdition(info.edition);
   };
 
-  const handleFinalize = () => {
+  const handleFinalize = async () => {
     if (!cardName.trim()) return toast.error("Card name is required");
-    if (!buyerName.trim()) return toast.error("Buyer name is required");
-    if (!sellerName.trim()) return toast.error("Seller name is required");
+    if (!customer) return toast.error("Select a contact");
     if (!amount || parseFloat(amount) <= 0) return toast.error("Valid amount is required");
     if (!buyerSig) return toast.error("Buyer signature is required");
     if (!sellerSig) return toast.error("Seller signature is required");
+    if (!user) return;
 
-    addTransaction({
-      cardName: cardName.trim(),
-      cardSet: cardSet.trim(),
-      cardNumber: cardNumber.trim(),
-      cardImage,
-      buyerName: buyerName.trim(),
-      sellerName: sellerName.trim(),
-      amount: parseFloat(amount),
-      buyerSignature: buyerSig,
-      sellerSignature: sellerSig,
-    });
+    setSaving(true);
+    try {
+      const code = `TXN_${String(Date.now()).slice(-6)}_${String(Math.floor(Math.random() * 100)).padStart(2, "0")}`;
 
-    toast.success("Transaction finalized and verified on-chain");
-    onComplete();
+      const { error } = await supabase.from("transactions").insert({
+        user_id: user.id,
+        transaction_code: code,
+        type: txType,
+        card_name: cardName.trim(),
+        card_set: cardSet.trim() || null,
+        card_number: cardNumber.trim() || null,
+        card_image: cardImage,
+        rarity: rarity || null,
+        card_type: cardType || null,
+        condition: conditionVal || null,
+        edition: edition || null,
+        customer_id: customer.id,
+        customer_name: customer.name,
+        amount: parseFloat(amount),
+        transaction_date: transactionDate,
+        buyer_signature: buyerSig,
+        seller_signature: sellerSig,
+        tx_hash: generateHash(),
+        status: "verified",
+      });
+
+      if (error) throw error;
+      toast.success("Transaction finalized and verified");
+      onComplete();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -78,7 +108,7 @@ export default function NewTransaction({ onComplete, onBack }: NewTransactionPro
           <ArrowLeft className="w-5 h-5" />
         </button>
         <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-          New Transaction
+          Full Transaction
         </span>
       </div>
 
@@ -89,7 +119,7 @@ export default function NewTransaction({ onComplete, onBack }: NewTransactionPro
           <CardScanner onCapture={handleCapture} />
         </div>
 
-        {/* Card Info — AI populated, manually editable */}
+        {/* Card Info */}
         <div className="space-y-4">
           <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
             Card Details
@@ -99,16 +129,37 @@ export default function NewTransaction({ onComplete, onBack }: NewTransactionPro
           <InputField label="Set / Expansion" value={cardSet} onChange={setCardSet} />
           <InputField label="Card Number" value={cardNumber} onChange={setCardNumber} />
           <InputField label="Rarity" value={rarity} onChange={setRarity} />
-          <InputField label="Card Type (Pokemon, Yu-Gi-Oh, etc)" value={cardType} onChange={setCardType} />
-          <InputField label="Condition" value={condition} onChange={setCondition} />
+          <InputField label="Card Type" value={cardType} onChange={setCardType} />
+          <InputField label="Condition" value={conditionVal} onChange={setConditionVal} />
           <InputField label="Edition" value={edition} onChange={setEdition} />
         </div>
 
-        {/* Transaction Details */}
+        {/* Transaction Type */}
+        <div className="space-y-3">
+          <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Transaction Type</div>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setTxType("bought")}
+              className={`py-3 font-mono text-sm uppercase tracking-wider border snap-transition ${txType === "bought" ? "bg-foreground text-background border-foreground" : "border-border text-foreground"}`}
+            >Bought</button>
+            <button
+              onClick={() => setTxType("sold")}
+              className={`py-3 font-mono text-sm uppercase tracking-wider border snap-transition ${txType === "sold" ? "bg-foreground text-background border-foreground" : "border-border text-foreground"}`}
+            >Sold</button>
+          </div>
+        </div>
+
+        {/* Contact */}
+        <div className="space-y-3">
+          <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+            {txType === "bought" ? "Bought From" : "Sold To"}
+          </div>
+          <CustomerSelector onSelect={setCustomer} selected={customer} />
+        </div>
+
+        {/* Amount & Date */}
         <div className="space-y-4">
           <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Transaction Details</div>
-          <InputField label="Buyer Name" value={buyerName} onChange={setBuyerName} />
-          <InputField label="Seller Name" value={sellerName} onChange={setSellerName} />
           <InputField label="Amount ($)" value={amount} onChange={setAmount} type="number" />
           <div className="relative">
             <input
@@ -133,9 +184,10 @@ export default function NewTransaction({ onComplete, onBack }: NewTransactionPro
         {/* Finalize */}
         <button
           onClick={handleFinalize}
-          className="w-full py-4 bg-foreground text-background font-mono text-sm uppercase tracking-wider active:scale-[0.98] snap-transition"
+          disabled={saving}
+          className="w-full py-4 bg-foreground text-background font-mono text-sm uppercase tracking-wider active:scale-[0.98] snap-transition disabled:opacity-50"
         >
-          Finalize Transaction
+          {saving ? "Saving..." : "Finalize Transaction"}
         </button>
 
         <div className="pb-8" />
