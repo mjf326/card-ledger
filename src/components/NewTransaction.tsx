@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CalendarIcon } from "lucide-react";
 import { useTransactions } from "@/context/TransactionContext";
 import CardScanner from "@/components/CardScanner";
 import SignaturePad, { SignaturePadRef } from "@/components/SignaturePad";
@@ -20,17 +20,26 @@ export default function NewTransaction({ onComplete, onBack }: NewTransactionPro
   const [cardName, setCardName] = useState("");
   const [cardSet, setCardSet] = useState("");
   const [cardNumber, setCardNumber] = useState("");
+  const [rarity, setRarity] = useState("");
+  const [cardType, setCardType] = useState("");
+  const [condition, setCondition] = useState("");
+  const [edition, setEdition] = useState("");
   const [buyerName, setBuyerName] = useState("");
   const [sellerName, setSellerName] = useState("");
   const [amount, setAmount] = useState("");
+  const [transactionDate, setTransactionDate] = useState(new Date().toISOString().split("T")[0]);
   const [buyerSig, setBuyerSig] = useState<string | null>(null);
   const [sellerSig, setSellerSig] = useState<string | null>(null);
 
-  const handleCapture = (imageData: string, info: { name: string; set: string; number: string }) => {
+  const handleCapture = (imageData: string, info: { name: string; set: string; number: string; rarity?: string; cardType?: string; condition?: string; edition?: string }) => {
     setCardImage(imageData);
-    setCardName(info.name);
-    setCardSet(info.set);
-    setCardNumber(info.number);
+    if (info.name) setCardName(info.name);
+    if (info.set) setCardSet(info.set);
+    if (info.number) setCardNumber(info.number);
+    if (info.rarity) setRarity(info.rarity);
+    if (info.cardType) setCardType(info.cardType);
+    if (info.condition) setCondition(info.condition);
+    if (info.edition) setEdition(info.edition);
   };
 
   const handleFinalize = () => {
@@ -80,12 +89,19 @@ export default function NewTransaction({ onComplete, onBack }: NewTransactionPro
           <CardScanner onCapture={handleCapture} />
         </div>
 
-        {/* Card Info */}
+        {/* Card Info — AI populated, manually editable */}
         <div className="space-y-4">
-          <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Card Details</div>
+          <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+            Card Details
+            <span className="ml-2 text-primary normal-case">AI-populated • edit if incorrect</span>
+          </div>
           <InputField label="Card Name" value={cardName} onChange={setCardName} />
-          <InputField label="Set" value={cardSet} onChange={setCardSet} />
-          <InputField label="Number" value={cardNumber} onChange={setCardNumber} />
+          <InputField label="Set / Expansion" value={cardSet} onChange={setCardSet} />
+          <InputField label="Card Number" value={cardNumber} onChange={setCardNumber} />
+          <InputField label="Rarity" value={rarity} onChange={setRarity} />
+          <InputField label="Card Type (Pokemon, Yu-Gi-Oh, etc)" value={cardType} onChange={setCardType} />
+          <InputField label="Condition" value={condition} onChange={setCondition} />
+          <InputField label="Edition" value={edition} onChange={setEdition} />
         </div>
 
         {/* Transaction Details */}
@@ -94,6 +110,17 @@ export default function NewTransaction({ onComplete, onBack }: NewTransactionPro
           <InputField label="Buyer Name" value={buyerName} onChange={setBuyerName} />
           <InputField label="Seller Name" value={sellerName} onChange={setSellerName} />
           <InputField label="Amount ($)" value={amount} onChange={setAmount} type="number" />
+          <div className="relative">
+            <input
+              type="date"
+              value={transactionDate}
+              onChange={(e) => setTransactionDate(e.target.value)}
+              className="w-full bg-transparent border-b border-border py-3 font-mono text-sm text-foreground focus:border-foreground focus:outline-none snap-transition"
+            />
+            <label className="absolute left-0 -top-2 text-[10px] text-muted-foreground uppercase tracking-wider">
+              Transaction Date
+            </label>
+          </div>
         </div>
 
         {/* Signatures */}
