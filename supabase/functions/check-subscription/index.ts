@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
-import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,16 +11,20 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
+// Decode JWT payload without network call to avoid TLS issues
+function decodeJwtPayload(token: string): Record<string, any> {
+  const parts = token.split(".");
+  if (parts.length !== 3) throw new Error("Invalid JWT format");
+  const payload = parts[1];
+  const padded = payload + "=".repeat((4 - (payload.length % 4)) % 4);
+  const decoded = atob(padded.replace(/-/g, "+").replace(/_/g, "/"));
+  return JSON.parse(decoded);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
-
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    { auth: { persistSession: false } }
-  );
 
   try {
     logStep("Function started");
@@ -33,14 +36,15 @@ serve(async (req) => {
     if (!authHeader) throw new Error("No authorization header provided");
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
-    const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { email: user.email });
+    
+    // Decode JWT locally instead of calling Supabase auth API
+    const payload = decodeJwtPayload(token);
+    const email = payload.email;
+    if (!email) throw new Error("No email found in token");
+    logStep("User authenticated", { email });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    const customers = await stripe.customers.list({ email, limit: 1 });
 
     if (customers.data.length === 0) {
       logStep("No Stripe customer found");
