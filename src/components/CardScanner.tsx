@@ -1,18 +1,24 @@
 import { useRef, useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Camera, Upload, X } from "lucide-react";
+import { Camera, Upload, X, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-interface CardScannerProps {
-  onCapture: (imageData: string, cardInfo: { name: string; set: string; number: string }) => void;
+interface CardInfo {
+  name: string;
+  set: string;
+  number: string;
+  rarity?: string;
+  cardType?: string;
+  year?: string;
+  condition?: string;
+  edition?: string;
+  language?: string;
 }
 
-const SAMPLE_CARDS = [
-  { name: "Charizard", set: "Base Set", number: "4/102" },
-  { name: "Pikachu", set: "Jungle", number: "60/64" },
-  { name: "Blastoise", set: "Base Set", number: "2/102" },
-  { name: "Dark Magician", set: "LOB", number: "LOB-005" },
-  { name: "Blue-Eyes White Dragon", set: "SDK", number: "SDK-001" },
-];
+interface CardScannerProps {
+  onCapture: (imageData: string, cardInfo: CardInfo) => void;
+}
 
 export default function CardScanner({ onCapture }: CardScannerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -20,18 +26,42 @@ export default function CardScanner({ onCapture }: CardScannerProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [isCamera, setIsCamera] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const simulateOCR = () => SAMPLE_CARDS[Math.floor(Math.random() * SAMPLE_CARDS.length)];
+  const analyzeCard = useCallback(async (imageData: string) => {
+    setIsAnalyzing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("scan-card", {
+        body: { imageBase64: imageData },
+      });
+
+      if (error) throw error;
+
+      if (data?.cardInfo) {
+        onCapture(imageData, data.cardInfo);
+        toast.success("Card identified successfully");
+      } else {
+        onCapture(imageData, { name: "", set: "", number: "" });
+        toast.info("Could not identify card — please fill in details manually");
+      }
+    } catch (err: any) {
+      console.error("Card scan error:", err);
+      onCapture(imageData, { name: "", set: "", number: "" });
+      toast.error("AI scan failed — enter details manually");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, [onCapture]);
 
   const handleFile = useCallback((file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const data = e.target?.result as string;
       setPreview(data);
-      onCapture(data, simulateOCR());
+      analyzeCard(data);
     };
     reader.readAsDataURL(file);
-  }, [onCapture]);
+  }, [analyzeCard]);
 
   const startCamera = async () => {
     try {
@@ -56,7 +86,7 @@ export default function CardScanner({ onCapture }: CardScannerProps) {
     canvas.getContext("2d")?.drawImage(videoRef.current, 0, 0);
     const data = canvas.toDataURL("image/webp", 0.9);
     setPreview(data);
-    onCapture(data, simulateOCR());
+    analyzeCard(data);
     stopCamera();
   };
 
@@ -80,12 +110,22 @@ export default function CardScanner({ onCapture }: CardScannerProps) {
         className="relative w-full"
       >
         <img src={preview} alt="Captured card" className="w-full aspect-[2.5/3.5] object-cover bg-secondary" />
-        <button
-          onClick={clear}
-          className="absolute top-2 right-2 p-2 bg-background/80 text-foreground hover:bg-background snap-transition"
-        >
-          <X className="w-4 h-4" />
-        </button>
+        {isAnalyzing && (
+          <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center gap-3">
+            <Loader2 className="w-8 h-8 animate-spin text-foreground" />
+            <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+              Analyzing Card...
+            </span>
+          </div>
+        )}
+        {!isAnalyzing && (
+          <button
+            onClick={clear}
+            className="absolute top-2 right-2 p-2 bg-background/80 text-foreground hover:bg-background snap-transition"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
       </motion.div>
     );
   }
