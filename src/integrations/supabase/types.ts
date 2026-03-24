@@ -58,6 +58,8 @@ export type Database = {
           customer_id: string | null
           customer_name: string
           edition: string | null
+          graded: boolean
+          grading_cost: number | null
           id: string
           rarity: string | null
           receipt_image: string | null
@@ -82,6 +84,8 @@ export type Database = {
           customer_id?: string | null
           customer_name: string
           edition?: string | null
+          graded?: boolean
+          grading_cost?: number | null
           id?: string
           rarity?: string | null
           receipt_image?: string | null
@@ -106,6 +110,8 @@ export type Database = {
           customer_id?: string | null
           customer_name?: string
           edition?: string | null
+          graded?: boolean
+          grading_cost?: number | null
           id?: string
           rarity?: string | null
           receipt_image?: string | null
