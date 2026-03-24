@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Shield, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import CardScanner from "@/components/CardScanner";
@@ -37,6 +37,8 @@ export default function NewTransaction({ onComplete, onBack }: NewTransactionPro
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [amount, setAmount] = useState("");
   const [transactionDate, setTransactionDate] = useState(new Date().toISOString().split("T")[0]);
+  const [graded, setGraded] = useState(false);
+  const [gradingCost, setGradingCost] = useState("");
   const [buyerSig, setBuyerSig] = useState<string | null>(null);
   const [sellerSig, setSellerSig] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -76,6 +78,8 @@ export default function NewTransaction({ onComplete, onBack }: NewTransactionPro
         card_type: cardType || null,
         condition: conditionVal || null,
         edition: edition || null,
+        graded,
+        grading_cost: gradingCost ? parseFloat(gradingCost) : null,
         customer_id: customer.id,
         customer_name: customer.name,
         amount: parseFloat(amount),
@@ -87,6 +91,29 @@ export default function NewTransaction({ onComplete, onBack }: NewTransactionPro
       });
 
       if (error) throw error;
+
+      // Send receipt email to customer if they have an email
+      if (customer.email) {
+        try {
+          await supabase.functions.invoke("send-receipt", {
+            body: {
+              recipientEmail: customer.email,
+              recipientName: customer.name,
+              cardName: cardName.trim(),
+              cardSet: cardSet.trim() || null,
+              amount: parseFloat(amount),
+              txType,
+              transactionCode: code,
+              graded,
+              gradingCost: gradingCost ? parseFloat(gradingCost) : null,
+              date: transactionDate,
+            },
+          });
+        } catch {
+          // Don't block on email failure
+        }
+      }
+
       toast.success("Transaction finalized and verified");
       onComplete();
     } catch (err: any) {
@@ -119,7 +146,7 @@ export default function NewTransaction({ onComplete, onBack }: NewTransactionPro
           <CardScanner onCapture={handleCapture} />
         </div>
 
-        {/* Card Info */}
+        {/* Card Info — editable after scan */}
         <div className="space-y-4">
           <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
             Card Details
@@ -132,6 +159,33 @@ export default function NewTransaction({ onComplete, onBack }: NewTransactionPro
           <InputField label="Card Type" value={cardType} onChange={setCardType} />
           <InputField label="Condition" value={conditionVal} onChange={setConditionVal} />
           <InputField label="Edition" value={edition} onChange={setEdition} />
+        </div>
+
+        {/* Grading Status */}
+        <div className="space-y-3">
+          <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Grading Status</div>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setGraded(false)}
+              className={`flex items-center justify-center gap-2 py-3 font-mono text-sm uppercase tracking-wider border snap-transition ${!graded ? "bg-foreground text-background border-foreground" : "border-border text-foreground"}`}
+            >
+              <Shield className="w-4 h-4" />
+              Raw
+            </button>
+            <button
+              onClick={() => setGraded(true)}
+              className={`flex items-center justify-center gap-2 py-3 font-mono text-sm uppercase tracking-wider border snap-transition ${graded ? "bg-foreground text-background border-foreground" : "border-border text-foreground"}`}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              Graded
+            </button>
+          </div>
+          <InputField
+            label={graded ? "Grading Cost ($)" : "Estimated Grading Cost ($)"}
+            value={gradingCost}
+            onChange={setGradingCost}
+            type="number"
+          />
         </div>
 
         {/* Transaction Type */}
@@ -176,7 +230,7 @@ export default function NewTransaction({ onComplete, onBack }: NewTransactionPro
 
         {/* Signatures */}
         <div className="space-y-4">
-          <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Signatures</div>
+          <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Signatures (Both Required)</div>
           <SignaturePad ref={buyerSigRef} label="Buyer Signature Required" onSignatureChange={setBuyerSig} />
           <SignaturePad ref={sellerSigRef} label="Seller Signature Required" onSignatureChange={setSellerSig} />
         </div>
