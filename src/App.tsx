@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/context/AuthContext";
 import Landing from "@/pages/Landing";
+import Install from "@/pages/Install";
 import Auth from "@/pages/Auth";
 import ResetPassword from "@/pages/ResetPassword";
 import Dashboard from "@/pages/Dashboard";
@@ -22,6 +23,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Landing />} />
+            <Route path="/install" element={<Install />} />
             <Route path="/login" element={<Auth />} />
             <Route path="/signup" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
