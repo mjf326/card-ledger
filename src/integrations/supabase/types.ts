@@ -44,6 +44,45 @@ export type Database = {
         }
         Relationships: []
       }
+      merkle_batches: {
+        Row: {
+          anchored_at: string | null
+          chain: string
+          created_at: string
+          id: string
+          merkle_root: string
+          polygon_block_number: number | null
+          polygon_tx_hash: string | null
+          status: string
+          transaction_count: number
+          tx_ids: string[]
+        }
+        Insert: {
+          anchored_at?: string | null
+          chain?: string
+          created_at?: string
+          id?: string
+          merkle_root: string
+          polygon_block_number?: number | null
+          polygon_tx_hash?: string | null
+          status?: string
+          transaction_count: number
+          tx_ids: string[]
+        }
+        Update: {
+          anchored_at?: string | null
+          chain?: string
+          created_at?: string
+          id?: string
+          merkle_root?: string
+          polygon_block_number?: number | null
+          polygon_tx_hash?: string | null
+          status?: string
+          transaction_count?: number
+          tx_ids?: string[]
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -54,6 +93,7 @@ export type Database = {
           card_set: string | null
           card_type: string | null
           condition: string | null
+          content_hash: string | null
           created_at: string
           customer_id: string | null
           customer_name: string
@@ -61,6 +101,8 @@ export type Database = {
           graded: boolean
           grading_cost: number | null
           id: string
+          merkle_batch_id: string | null
+          merkle_proof: Json | null
           rarity: string | null
           receipt_image: string | null
           seller_signature: string | null
@@ -80,6 +122,7 @@ export type Database = {
           card_set?: string | null
           card_type?: string | null
           condition?: string | null
+          content_hash?: string | null
           created_at?: string
           customer_id?: string | null
           customer_name: string
@@ -87,6 +130,8 @@ export type Database = {
           graded?: boolean
           grading_cost?: number | null
           id?: string
+          merkle_batch_id?: string | null
+          merkle_proof?: Json | null
           rarity?: string | null
           receipt_image?: string | null
           seller_signature?: string | null
@@ -106,6 +151,7 @@ export type Database = {
           card_set?: string | null
           card_type?: string | null
           condition?: string | null
+          content_hash?: string | null
           created_at?: string
           customer_id?: string | null
           customer_name?: string
@@ -113,6 +159,8 @@ export type Database = {
           graded?: boolean
           grading_cost?: number | null
           id?: string
+          merkle_batch_id?: string | null
+          merkle_proof?: Json | null
           rarity?: string | null
           receipt_image?: string | null
           seller_signature?: string | null
@@ -129,6 +177,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_merkle_batch_id_fkey"
+            columns: ["merkle_batch_id"]
+            isOneToOne: false
+            referencedRelation: "merkle_batches"
             referencedColumns: ["id"]
           },
         ]
