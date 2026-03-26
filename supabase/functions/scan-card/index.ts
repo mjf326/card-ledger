@@ -13,30 +13,35 @@ serve(async (req) => {
     if (!imageBase64) throw new Error("No image provided");
 
     const CardScannerGeminiKey = Deno.env.get("CardScannerGeminiKey");
+    
+    // Detailed key logging
+    console.log("Key exists:", !!CardScannerGeminiKey);
+    console.log("Key length:", CardScannerGeminiKey?.length ?? 0);
+    
     if (!CardScannerGeminiKey) throw new Error("CardScannerGeminiKey is not configured");
 
-    // Strip data URL prefix if present
     const base64Data = imageBase64.replace(/^data:image\/[a-z]+;base64,/, "");
+    console.log("Image base64 length:", base64Data.length);
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${CardScannerGeminiKey}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  inline_data: {
-                    mime_type: "image/jpeg",
-                    data: base64Data,
-                  },
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${CardScannerGeminiKey}`;
+    
+    const response = await fetch(geminiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                inline_data: {
+                  mime_type: "image/jpeg",
+                  data: base64Data,
                 },
-                {
-                  text: `You are a trading card identification expert. Analyze this card image and extract all available information.
+              },
+              {
+                text: `You are a trading card identification expert. Analyze this card image and extract all available information.
 
 Return ONLY a raw JSON object with no markdown, no backticks, no explanation. Use exactly this format:
 {
@@ -52,38 +57,40 @@ Return ONLY a raw JSON object with no markdown, no backticks, no explanation. Us
 }
 
 Only include fields you can identify. name, set, and number are required.`,
-                },
-              ],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 500,
+              },
+            ],
           },
-        }),
-      }
-    );
+        ],
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 500,
+        },
+      }),
+    });
+
+    console.log("Gemini response status:", response.status);
 
     if (!response.ok) {
+      const text = await response.text();
+      console.error("Gemini error body:", text);
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limited, please try again shortly." }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const text = await response.text();
-      console.error("Gemini error:", response.status, text);
-      throw new Error("AI analysis failed");
+      throw new Error(`Gemini API failed: ${response.status} - ${text}`);
     }
 
     const data = await response.json();
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}";
+    console.log("Gemini raw response:", JSON.stringify(data).slice(0, 500));
 
-    // Strip any accidental markdown fences
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}";
+    console.log("Raw text from Gemini:", raw);
+
     const clean = raw.replace(/```json|```/g, "").trim();
     const cardInfo = JSON.parse(clean);
 
-    // Validate required fields are present
     if (!cardInfo.name && !cardInfo.set && !cardInfo.number) {
       return new Response(JSON.stringify({ cardInfo: { name: "", set: "", number: "" } }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -102,9 +109,6 @@ Only include fields you can identify. name, set, and number are required.`,
     });
   }
 });
-
-
-
 // import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 // const corsHeaders = {
