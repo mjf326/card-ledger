@@ -35,7 +35,7 @@ export default function ResetPassword() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="w-full max-w-sm p-8">
-        <h1 className="font-mono text-lg tracking-tighter font-bold text-foreground mb-8 text-center">CARDVAULT</h1>
+        <h1 className="font-mono text-lg tracking-tighter font-bold text-foreground mb-8 text-center">VAULT</h1>
         <h2 className="font-mono text-xs uppercase tracking-[0.3em] text-muted-foreground mb-6 text-center">
           Reset Password
         </h2>
