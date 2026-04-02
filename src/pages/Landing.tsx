@@ -8,7 +8,7 @@ export default function Landing() {
       {/* Nav */}
       <nav className="border-b border-border">
         <div className="container mx-auto flex items-center justify-between py-4">
-          <h1 className="font-mono text-lg tracking-tighter font-bold text-foreground">CARDVAULT</h1>
+          <h1 className="font-mono text-lg tracking-tighter font-bold text-foreground">VAULT</h1>
           <div className="flex items-center gap-4">
             <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground snap-transition">
               Sign In
@@ -47,7 +47,7 @@ export default function Landing() {
       <section className="border-t border-border py-20">
         <div className="container mx-auto">
           <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground font-mono mb-12 text-center">
-            Why CardVault
+            Why Vault
           </p>
           <div className="grid md:grid-cols-3 gap-8">
             {[
@@ -77,7 +77,7 @@ export default function Landing() {
           <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground font-mono mb-4">Pricing</p>
           <h3 className="text-3xl font-bold text-foreground mb-12">One plan. Full access.</h3>
           <div className="max-w-sm mx-auto border border-primary p-8">
-            <p className="font-mono text-xs uppercase tracking-widest text-primary mb-2">CardVault Pro</p>
+            <p className="font-mono text-xs uppercase tracking-widest text-primary mb-2">Vault Pro</p>
             <div className="flex items-baseline justify-center gap-1 mb-6">
               <span className="text-5xl font-bold text-foreground">$9.99</span>
               <span className="text-muted-foreground text-sm">/mo</span>
@@ -103,7 +103,7 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t border-border py-8">
         <div className="container mx-auto text-center">
-          <p className="text-xs text-muted-foreground font-mono">© 2026 CardVault. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground font-mono">© 2026 Vault. All rights reserved.</p>
         </div>
       </footer>
     </div>
