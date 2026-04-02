@@ -24,8 +24,8 @@ export default defineConfig(({ mode }) => ({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
       },
       manifest: {
-        name: "CardLedger",
-        short_name: "CardLedger",
+        name: "Vault",
+        short_name: "Vault",
         description: "Trading card transaction ledger with AI scanning",
         theme_color: "#0a0a0f",
         background_color: "#0a0a0f",
