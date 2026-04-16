@@ -3,6 +3,7 @@ import { Shield, Zap, Camera, ArrowRight, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import cardinalLogo from "@/assets/cardinal-logo.png";
 
+
 export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
