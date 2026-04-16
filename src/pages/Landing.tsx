@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Shield, Zap, Camera, ArrowRight, Check } from "lucide-react";
 import { Link } from "react-router-dom";
+import cardinalLogo from "@/assets/cardinal-logo.png";
 
 export default function Landing() {
   return (
@@ -8,7 +9,10 @@ export default function Landing() {
       {/* Nav */}
       <nav className="border-b border-border">
         <div className="container mx-auto flex items-center justify-between py-4">
-          <h1 className="font-mono text-lg tracking-tighter font-bold text-foreground">VAULT</h1>
+          <div className="flex items-center gap-2">
+            <img src={cardinalLogo} alt="Cardinal" width={32} height={32} className="w-8 h-8" />
+            <h1 className="font-mono text-lg tracking-tighter font-bold text-foreground">CARDINAL</h1>
+          </div>
           <div className="flex items-center gap-4">
             <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground snap-transition">
               Sign In
@@ -28,17 +32,17 @@ export default function Landing() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           <p className="text-xs uppercase tracking-[0.3em] text-primary font-mono mb-4">Trading Card Ledger</p>
           <h2 className="text-4xl md:text-6xl font-bold text-foreground leading-tight mb-6 max-w-3xl mx-auto">
-            Physical Assets.<br />
-            <span className="text-primary">Immutable Proof.</span>
+            Don't wing your transaction.<br />
+            <span className="text-primary">Snap. Save. Soar.</span>
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto mb-10 text-lg">
-            Track every buy, sell, and trade with photo evidence, digital signatures, and exportable records. Your vault for real-world transactions.
+            Track every buy, sell, and trade with photo evidence, digital signatures, and exportable records. The ledger built for serious card collectors.
           </p>
           <Link
             to="/signup"
             className="inline-flex items-center gap-2 bg-foreground text-background px-8 py-4 text-sm font-mono uppercase tracking-widest hover:opacity-90 snap-transition"
           >
-            Start Your Vault <ArrowRight className="w-4 h-4" />
+            Start Your Ledger <ArrowRight className="w-4 h-4" />
           </Link>
         </motion.div>
       </section>
@@ -47,7 +51,7 @@ export default function Landing() {
       <section className="border-t border-border py-20">
         <div className="container mx-auto">
           <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground font-mono mb-12 text-center">
-            Why Vault
+            Why Cardinal
           </p>
           <div className="grid md:grid-cols-3 gap-8">
             {[
@@ -77,7 +81,7 @@ export default function Landing() {
           <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground font-mono mb-4">Pricing</p>
           <h3 className="text-3xl font-bold text-foreground mb-12">One plan. Full access.</h3>
           <div className="max-w-sm mx-auto border border-primary p-8">
-            <p className="font-mono text-xs uppercase tracking-widest text-primary mb-2">Vault Pro</p>
+            <p className="font-mono text-xs uppercase tracking-widest text-primary mb-2">Cardinal Pro</p>
             <div className="flex items-baseline justify-center gap-1 mb-6">
               <span className="text-5xl font-bold text-foreground">$9.99</span>
               <span className="text-muted-foreground text-sm">/mo</span>
@@ -103,7 +107,7 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t border-border py-8">
         <div className="container mx-auto text-center">
-          <p className="text-xs text-muted-foreground font-mono">© 2026 Vault. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground font-mono">© 2026 Cardinal. All rights reserved.</p>
         </div>
       </footer>
     </div>

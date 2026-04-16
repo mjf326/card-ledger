@@ -78,7 +78,7 @@ export default function Ledger({ onShowAnalytics }: { onShowAnalytics?: () => vo
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `vault_ledger_${new Date().toISOString().split("T")[0]}.csv`;
+    a.download = `cardinal_ledger_${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -100,7 +100,7 @@ export default function Ledger({ onShowAnalytics }: { onShowAnalytics?: () => vo
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex justify-between items-center mb-1">
-          <h1 className="font-mono text-lg tracking-tighter font-medium text-foreground">VAULT</h1>
+          <h1 className="font-mono text-lg tracking-tighter font-medium text-foreground">CARDINAL</h1>
           <div className="flex items-center gap-3">
             {onShowAnalytics && (
               <button onClick={onShowAnalytics} className="text-muted-foreground hover:text-foreground snap-transition">
