@@ -55,14 +55,14 @@ export default function Install() {
 
         <img
           src="/pwa-icon-512.png"
-          alt="Vault"
+          alt="Cardinal"
           width={96}
           height={96}
           className="mx-auto rounded-2xl"
         />
 
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Install Vault</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Install Cardinal</h1>
           <p className="text-muted-foreground mt-2 text-sm">
             Add to your home screen for quick access, camera scanning, and offline use.
           </p>
