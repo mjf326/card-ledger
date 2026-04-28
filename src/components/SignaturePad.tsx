@@ -41,7 +41,8 @@ const SignaturePad = forwardRef<SignaturePadRef, SignaturePadProps>(({ label, on
     const ctx = canvas.getContext("2d");
     if (ctx) {
       ctx.scale(dpr, dpr);
-      ctx.strokeStyle = "hsl(0, 0%, 98%)";
+      const fg = getComputedStyle(document.documentElement).getPropertyValue("--foreground").trim();
+      ctx.strokeStyle = fg ? `hsl(${fg})` : "hsl(0, 0%, 5%)";
       ctx.lineWidth = 2;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
