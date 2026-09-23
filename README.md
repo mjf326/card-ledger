@@ -1,3 +1,2 @@
-# Welcome to your Lovable project
-
-TODO: Document your project here
+# Card Scanner
+Start-up IBE Project for scanning cards
